@@ -1,0 +1,42 @@
+#+title: Odyssey - Entry log 1
+#+description: Setting up the project using PlatformIO
+#+author: Milton J. De Paula
+
+These log entries will serve as a form to log progress and findings while tackling this project.
+I hope that in the future they will serve some value.
+
+* Table of content :toc:
+- [[#the-start-of-the-journey][The start of the journey]]
+  - [[#why-a-desk-lamp][Why a desk lamp]]
+  - [[#picking-a-microcontroller][Picking a microcontroller]]
+- [[#setting-up-the-project][Setting up the project]]
+  - [[#picking-and-embedded-development-enviroment][Picking and embedded development enviroment]]
+  - [[#setting-up-platformio-and-emacs][Setting up PlatformIO and Emacs]]
+  - [[#initialising-the-project][Initialising the project]]
+
+* The start of the journey
+For some time in my job I have been mostly involved with writting Cypress test as part of my companies effort to move away from WebDriver test. TypeScript land, I call it. Usually, I'd be happily working with Elm, a language I couldn't recommend more.
+TypeScript land is not the nicest place to be and it brings me a lot of grief. I needed a way to let my brain enjoy doing something that wasn't that and so here we are. Making a desk lamp.
+
+** Why a desk lamp
+I wanted to do something that would take me across multiple domains and allow me to gain some new skills. I wanted to make something I could show and it'd be useful. I also wanted something to help me on the journey of joining the 5am club. So why not a desk lamp.
+I thought, well, I can have it have a blue tinge (or just be blue) in the mornings (blue light wakes you  up). And in the evening, for those times that I'm working late for whatever reason, it could have a red tinge. This, is a good starting point for light projects and it would have some room to grow!
+
+** Picking a microcontroller
+I have a few microcontroller available to me from when I was in university and teaching kids how to program. So I didn't have any cost analysis's to do in regards to monetary cost, but I like the idea of this being accessible to someone who wants to replicate it, so I went with an ESP8266 as I read around that it tends to be cheaper than a ESP32.  And I think that the NeoPixels adds a bit of monetary heft to this project. I was very tempted to use my PyPortal Titano though, but thought best not to as I wanted this to be a focused project and didn't want to be distracted by the very lovely screen attached to it.
+
+
+* Setting up the project
+Usually, for a hobbyist, this should be a fairly simple process. Just open up Arduino and follow some very quick and easy instructions and BOOM! You're ready to go!
+unfortunately, am a pretentious as f*ck hipster, I have been plagued by this for a long time. So, in my true essence I have an urge to use technology from a bygone era and use Emacs as my text editor (note: There's a lot of  benefits to using a keyboard centric text editor like Emacs other than for fulfilling your pretentious nature).
+** Picking and embedded development enviroment
+Wanting to inhabit my natural habitat, Emacs, I had to look for alternatives to the Arduino IDE. A cursory google revealed to me [[https://platformio.org][PlatformIO]]. It seemed like a good choice. To get started again in this world of embedded systems, I wanted to make things as easy as possible for me as to not discourage myself. PlatformIO seemed and is showing itself to be a good balance of involved.
+** Setting up PlatformIO and Emacs
+First step was to install PlatformIO. This was pretty straight forward and the website has [[https://docs.platformio.org/en/latest/core/installation/index.html][clear instructions]], on how to do so, so I wont bother repeating them here. All I'll say here is that if you are an Arch Linux user you have the [[https://aur.archlinux.org/packages/platformio][AUR]] that you can use to your hearts content.
+
+Emacs was also not all that hard to set up. I use Doom Emacs so it facilitates a lot of the process. All I had to do was add was the following to my ~package.el~ file. Pretty straight forward.
+#+begin_src emacs-lisp
+(package! platformio-mode)
+#+end_src
+** Initialising the project
+Initialising the project was also pretty frictionless. But a little more involved then the above two steps.
