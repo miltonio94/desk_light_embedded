@@ -16,6 +16,8 @@ uint8_t wsPort = 81;
 unsigned int messageInterval = 5000;
 bool connected = false;
 bool buttonState = false;
+bool buttonWebSocketState = false;
+unsigned long lastUpdate = millis();
 
 WebSocketsServer webSocket = WebSocketsServer(wsPort);
 
@@ -33,8 +35,23 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t *payload,
   } break;
 
   case WStype_TEXT:
-    Serial.printf("[%u] RECEIVE TXT: %s\n", num, payload);
-    webSocket.sendTXT(num, payload);
+    // Serial.printf("[%u] RECEIVE TXT: %s\n", num, payload);
+    // webSocket.sendTXT(num, "Received");
+    lastUpdate = millis();
+
+    if (length <= 2 && payload[0] == 'O' && payload[1] == 'N') {
+      buttonWebSocketState = true;
+      Serial.println("Turning on lamp");
+      webSocket.sendTXT(num, "LAMP ON!");
+      return;
+    }
+    if (length <= 3 && payload[0] == 'O' && payload[1] == 'F' &&
+        payload[2] == 'F') {
+      Serial.println("Turning off lamp");
+      webSocket.sendTXT(num, "LAMP OFF!");
+      buttonWebSocketState = false;
+      return;
+    }
     break;
 
   case WStype_BIN:
@@ -43,12 +60,15 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t *payload,
   }
 }
 
-uint8_t buttonLastState = HIGH;
-uint8_t buttonCurrentState = HIGH;
-bool buttonToggleState = HIGH;
-
 void setup() {
-  delay(5000);
+  pixels.begin();
+  // doing this to fix a weird bug where when the microcontroller is reset
+  // it fails to drive the pixels properly until it's reset
+  pixels.clear();
+  pixels.show();
+  pixels.updateLength(NUMBER_OF_PIXELS);
+
+  delay(100);
   Serial.begin(38400);
 
   Serial.println();
@@ -59,22 +79,6 @@ void setup() {
     Serial.printf("[SETUP] BOOT WAIT %d...\n", t);
     Serial.flush();
     delay(1000);
-  }
-
-  pixels.begin();
-  // doing this to fix a weird bug where when the microcontroller is reset
-  // it fails to drive the pixels properly until it's reset
-  pixels.clear();
-  pixels.show();
-  pixels.updateLength(NUMBER_OF_PIXELS);
-
-  uint8_t numberOfNetworks = WiFi.scanNetworks();
-  printf("there are %d ssids\n", numberOfNetworks);
-  delay(5000);
-  while (numberOfNetworks) {
-    Serial.println(WiFi.SSID(numberOfNetworks));
-    Serial.flush();
-    numberOfNetworks--;
   }
 
   WiFi.begin(ssid, password);
@@ -98,11 +102,8 @@ void setup() {
   pinMode(BUTTON_PIN, INPUT_PULLUP);
 }
 
-unsigned long lastUpdate = millis();
-
 void loop() {
   webSocket.loop();
-  pixels.clear();
 
   if (lastUpdate + messageInterval < millis()) {
     Serial.println("[WSc] SENT: Simple broadcast client message!!");
@@ -110,20 +111,17 @@ void loop() {
     lastUpdate = millis();
   }
 
-  // Toggling button state on and off! Debounce is not implemented
-  // digitalRead reads high unless the button is pressed down
-  // so I'm iverting that here
-  if (!digitalRead(BUTTON_PIN)) {
-    if (!buttonCurrentState) {
-      buttonCurrentState = true;
-    } else
-      buttonCurrentState = false;
-  }
-
-  if (buttonCurrentState) {
-    pixels.setBrightness(255);
-    for (int8 i = 0; i < NUMBER_OF_PIXELS; i++) {
-      pixels.setPixelColor(i, pixels.Color(0, 0, 255));
+  if (buttonState != buttonWebSocketState) {
+    buttonState = buttonWebSocketState;
+    if (buttonState) {
+      Serial.println("doing the LED's");
+      pixels.setBrightness(255);
+      for (int8 i = 0; i < NUMBER_OF_PIXELS; i++) {
+        pixels.setPixelColor(i, pixels.Color(0, 0, 255));
+      }
+    } else {
+      pixels.setBrightness(0);
+      pixels.clear();
     }
   }
 
