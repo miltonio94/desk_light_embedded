@@ -5,7 +5,7 @@
 
 #define NUMBER_OF_PIXELS 10
 #define PIXEL_PIN D3
-#define BUTTON_PIN D1
+#define BAUD_RATE 38400
 
 const char *ssid = "<YOUR_SSID>";
 const char *password = "<PASSWORD>";
@@ -66,7 +66,7 @@ void setup() {
   pixels.updateLength(NUMBER_OF_PIXELS);
   pixels.clear();
 
-  Serial.begin(38400);
+  Serial.begin(BAUD_RATE);
 
   for (uint8_t t = 4; t > 0; t--) {
     Serial.printf("[SETUP] BOOT WAIT %d...\n", t);
