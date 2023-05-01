@@ -7,19 +7,19 @@
 #define PIXEL_PIN D3
 #define BUTTON_PIN D1
 
-const char *ssid = "esp8266_hotspot";
-const char *password = "Jojo1234";
+const char *ssid = "<YOUR_SSID>";
+const char *password = "<PASSWORD>";
 
 Adafruit_NeoPixel pixels(500, D3, NEO_GRB + NEO_KHZ800);
 
-uint8_t wsPort = 81;
-unsigned int messageInterval = 5000;
+uint8_t webSocketPort = 81;
+WebSocketsServer webSocket = WebSocketsServer(webSocketPort);
+unsigned int messageInterval = 10000;
+unsigned long lastUpdate = millis();
 bool connected = false;
+
 bool buttonState = false;
 bool buttonWebSocketState = false;
-unsigned long lastUpdate = millis();
-
-WebSocketsServer webSocket = WebSocketsServer(wsPort);
 
 void webSocketEvent(uint8_t num, WStype_t type, uint8_t *payload,
                     size_t length) {
@@ -35,8 +35,6 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t *payload,
   } break;
 
   case WStype_TEXT:
-    // Serial.printf("[%u] RECEIVE TXT: %s\n", num, payload);
-    // webSocket.sendTXT(num, "Received");
     lastUpdate = millis();
 
     if (length <= 2 && payload[0] == 'O' && payload[1] == 'N') {
@@ -56,7 +54,6 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t *payload,
 
   case WStype_BIN:
     Serial.printf("[%u] get binary length: %u\n", num, length);
-    hexdump(payload, length);
   }
 }
 
@@ -67,13 +64,9 @@ void setup() {
   pixels.clear();
   pixels.show();
   pixels.updateLength(NUMBER_OF_PIXELS);
+  pixels.clear();
 
-  delay(100);
   Serial.begin(38400);
-
-  Serial.println();
-  Serial.println();
-  Serial.println();
 
   for (uint8_t t = 4; t > 0; t--) {
     Serial.printf("[SETUP] BOOT WAIT %d...\n", t);
@@ -84,7 +77,6 @@ void setup() {
   WiFi.begin(ssid, password);
 
   while (WiFi.status() != WL_CONNECTED) {
-
     delay(500);
     Serial.printf("status: %d\n", WiFi.status());
   }
@@ -93,13 +85,11 @@ void setup() {
   Serial.print("ws://");
   Serial.print(WiFi.localIP());
   Serial.print(":");
-  Serial.print(wsPort);
+  Serial.print(webSocketPort);
   Serial.println("/");
 
   webSocket.begin();
   webSocket.onEvent(webSocketEvent);
-
-  pinMode(BUTTON_PIN, INPUT_PULLUP);
 }
 
 void loop() {
@@ -114,7 +104,6 @@ void loop() {
   if (buttonState != buttonWebSocketState) {
     buttonState = buttonWebSocketState;
     if (buttonState) {
-      Serial.println("doing the LED's");
       pixels.setBrightness(255);
       for (int8 i = 0; i < NUMBER_OF_PIXELS; i++) {
         pixels.setPixelColor(i, pixels.Color(0, 0, 255));
