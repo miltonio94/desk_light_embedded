@@ -1,0 +1,7 @@
+#ifndef CREDENTIALS_H_
+#define CREDENTIALS_H_
+
+#define SSID "<SSID_HERE"
+#define SSID_PASSWORD "<PASSWORD_HERE>"
+
+#endif // CREDENTIALS_H_
