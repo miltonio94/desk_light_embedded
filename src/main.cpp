@@ -1,14 +1,16 @@
 #include "Adafruit_NeoPixel.h"
 #include "Arduino.h"
 #include "ESP8266WiFi.h"
+#include "credentials.h"
+#include <ESP8266mDNS.h>>
 #include <WebSocketsServer.h>
 
 #define NUMBER_OF_PIXELS 10
 #define PIXEL_PIN D3
 #define BAUD_RATE 38400
 
-const char *ssid = "<YOUR_SSID>";
-const char *password = "<PASSWORD>";
+const char *ssid = SSID_NAME;
+const char *password = SSID_PASSWORD;
 
 Adafruit_NeoPixel pixels(500, D3, NEO_GRB + NEO_KHZ800);
 
@@ -90,10 +92,15 @@ void setup() {
 
   webSocket.begin();
   webSocket.onEvent(webSocketEvent);
+
+  if (MDNS.begin("pixie", WiFi.localIP()))
+    Serial.println("mDns started");
+  MDNS.addService("ws", "tcp", webSocketPort);
 }
 
 void loop() {
   webSocket.loop();
+  MDNS.update();
 
   if (lastUpdate + messageInterval < millis()) {
     Serial.println("[WSc] SENT: Simple broadcast client message!!");
