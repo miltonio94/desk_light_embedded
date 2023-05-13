@@ -1,21 +1,16 @@
 #include "Adafruit_NeoPixel.h"
 #include "Arduino.h"
-#include "ESP8266WiFi.h"
 #include "credentials.h"
-#include <ESP8266mDNS.h>>
-#include <WebSocketsServer.h>
+#include "pixie.h"
+#include <ESP8266mDNS.h>
 
 #define NUMBER_OF_PIXELS 10
 #define PIXEL_PIN D3
 #define BAUD_RATE 38400
 
-const char *ssid = SSID_NAME;
-const char *password = SSID_PASSWORD;
-
 Adafruit_NeoPixel pixels(500, D3, NEO_GRB + NEO_KHZ800);
 
-uint8_t webSocketPort = 81;
-WebSocketsServer webSocket = WebSocketsServer(webSocketPort);
+WebSocketsServer webSocket = WebSocketsServer(WEBSOCKET_PORT);
 unsigned int messageInterval = 10000;
 unsigned long lastUpdate = millis();
 bool connected = false;
@@ -60,13 +55,7 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t *payload,
 }
 
 void setup() {
-  pixels.begin();
-  // doing this to fix a weird bug where when the microcontroller is reset
-  // it fails to drive the pixels properly until it's reset
-  pixels.clear();
-  pixels.show();
-  pixels.updateLength(NUMBER_OF_PIXELS);
-  pixels.clear();
+  setupPixels(&pixels);
 
   Serial.begin(BAUD_RATE);
 
@@ -76,30 +65,31 @@ void setup() {
     delay(1000);
   }
 
-  WiFi.begin(ssid, password);
+  setupWifi();
+  // WiFi.begin(ssid, password);
 
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(500);
-    Serial.printf("status: %d\n", WiFi.status());
-  }
+  // while (WiFi.status() != WL_CONNECTED) {
+  //   delay(500);
+  //   Serial.printf("status: %d\n", WiFi.status());
+  // }
 
-  Serial.println("WebSocket complete uri is: ");
-  Serial.print("ws://");
-  Serial.print(WiFi.localIP());
-  Serial.print(":");
-  Serial.print(webSocketPort);
-  Serial.println("/");
+  // Serial.println("WebSocket complete uri is: ");
+  // Serial.print("ws://");
+  // Serial.print(WiFi.localIP());
+  // Serial.print(":");
+  // Serial.print(webSocketPort);
+  // Serial.println("/");
 
-  webSocket.begin();
-  webSocket.onEvent(webSocketEvent);
+  // webSocket.begin();
+  // webSocket.onEvent(webSocketEvent);
 
-  if (MDNS.begin("pixie", WiFi.localIP()))
-    Serial.println("mDns started");
-  MDNS.addService("ws", "tcp", webSocketPort);
+  //   if (MDNS.begin("pixie", WiFi.localIP()))
+  //     Serial.println("mDns started");
+  //   MDNS.addService("ws", "tcp", webSocketPort);
 }
 
 void loop() {
-  webSocket.loop();
+  // webSocket.loop();
   MDNS.update();
 
   if (lastUpdate + messageInterval < millis()) {
