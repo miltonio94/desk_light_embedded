@@ -10,9 +10,25 @@ bool connected = false;
 bool buttonState = false;
 bool buttonWebSocketState = false;
 
+struct colour {
+  uint8_t r;
+  uint8_t g;
+  uint8_t b;
+};
+
+colour rgb = {0, 0, 0};
+
 void setupPixels(Adafruit_NeoPixel *pixels) {
   pixels->begin();
   pixels->clear();
+  pixels->show();
+}
+
+void pixelUpdate(Adafruit_NeoPixel *pixels) {
+  pixels->clear();
+  for (uint8_t i = 0; i < NUMBER_OF_PIXELS; i++) {
+    pixels->setPixelColor(i, pixels->Color(rgb.g, rgb.r, rgb.b));
+  }
   pixels->show();
 }
 
@@ -22,7 +38,7 @@ void togglePixels(Adafruit_NeoPixel *pixels) {
     if (buttonState) {
       pixels->setBrightness(115);
       for (uint8_t i = 0; i < NUMBER_OF_PIXELS; i++) {
-        pixels->setPixelColor(i, pixels->Color(0, 0, 255));
+        pixels->setPixelColor(i, pixels->Color(rgb.g, rgb.r, rgb.b));
       }
     } else {
       pixels->setBrightness(0);
@@ -59,17 +75,34 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t *payload,
   case WStype_TEXT:
     lastUpdate = millis();
 
-    if (length <= 2 && payload[0] == 'O' && payload[1] == 'N') {
+    if (payload[0] == 'O' && payload[1] == 'N') {
       buttonWebSocketState = true;
       Serial.println("Turning on lamp");
       webSocket.sendTXT(num, "LAMP ON!");
       return;
     }
-    if (length <= 3 && payload[0] == 'O' && payload[1] == 'F' &&
-        payload[2] == 'F') {
+    if (payload[0] == 'O' && payload[1] == 'F' && payload[2] == 'F') {
       Serial.println("Turning off lamp");
       webSocket.sendTXT(num, "LAMP OFF!");
       buttonWebSocketState = false;
+      return;
+    }
+
+    if (payload[0] == 'R') {
+      char *ptr;
+      rgb.r = (uint8_t)strtol((char *)payload + 2, &ptr, 10);
+      return;
+    }
+
+    if (payload[0] == 'G') {
+      char *ptr;
+      rgb.g = (uint8_t)strtol((char *)payload + 2, &ptr, 10);
+      return;
+    }
+
+    if (payload[0] == 'B') {
+      char *ptr;
+      rgb.b = (uint8_t)strtol((char *)payload + 2, &ptr, 10);
       return;
     }
     break;
