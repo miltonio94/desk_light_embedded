@@ -24,6 +24,7 @@ void setup() {
 }
 
 void loop() {
+  pixelUpdate(&pixels);
   socketUpdate();
   MDNS.update();
   togglePixels(&pixels);
