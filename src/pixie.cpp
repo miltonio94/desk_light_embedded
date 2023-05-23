@@ -17,7 +17,7 @@ struct colour {
   uint8_t a;
 };
 
-colour rgb = {0, 0, 0, 255};
+colour rgba = {0, 0, 0, 255};
 
 void setupPixels(Adafruit_NeoPixel *pixels) {
   pixels->begin();
@@ -27,10 +27,11 @@ void setupPixels(Adafruit_NeoPixel *pixels) {
 
 void pixelUpdate(Adafruit_NeoPixel *pixels) {
   pixels->clear();
-  for (uint8_t i = 0; i < NUMBER_OF_PIXELS; i++) {
-    pixels->setBrightness(rgb.a);
-    pixels->setPixelColor(i, pixels->Color(rgb.g, rgb.r, rgb.b));
-  }
+  if (buttonWebSocketState)
+    for (uint8_t i = 0; i < NUMBER_OF_PIXELS; i++) {
+      pixels->setBrightness(rgba.a);
+      pixels->setPixelColor(i, pixels->Color(rgba.g, rgba.r, rgba.b));
+    }
   pixels->show();
 }
 
@@ -38,9 +39,9 @@ void togglePixels(Adafruit_NeoPixel *pixels) {
   if (buttonState != buttonWebSocketState) {
     buttonState = buttonWebSocketState;
     if (buttonState) {
-      pixels->setBrightness(rgb.a);
+      pixels->setBrightness(rgba.a);
       for (uint8_t i = 0; i < NUMBER_OF_PIXELS; i++) {
-        pixels->setPixelColor(i, pixels->Color(rgb.g, rgb.r, rgb.b));
+        pixels->setPixelColor(i, pixels->Color(rgba.g, rgba.r, rgba.b));
       }
     } else {
       pixels->setBrightness(0);
@@ -73,13 +74,13 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t *payload,
     uint8_t colourVal[5];
 
     webSocket.sendTXT(num, "CONNECTED");
-    sprintf((char *)colourVal, "R_%i", rgb.r);
+    sprintf((char *)colourVal, "R_%i", rgba.r);
     webSocket.sendTXT(num, colourVal);
-    sprintf((char *)colourVal, "G_%i", rgb.g);
+    sprintf((char *)colourVal, "G_%i", rgba.g);
     webSocket.sendTXT(num, colourVal);
-    sprintf((char *)colourVal, "B_%i", rgb.b);
+    sprintf((char *)colourVal, "B_%i", rgba.b);
     webSocket.sendTXT(num, colourVal);
-    sprintf((char *)colourVal, "A_%i", rgb.a);
+    sprintf((char *)colourVal, "A_%i", rgba.a);
     webSocket.sendTXT(num, colourVal);
 
     if (buttonWebSocketState)
@@ -105,25 +106,25 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t *payload,
 
     if (payload[0] == 'R') {
       char *ptr;
-      rgb.r = (uint8_t)strtol((char *)payload + 2, &ptr, 10);
+      rgba.r = (uint8_t)strtol((char *)payload + 2, &ptr, 10);
       return;
     }
 
     if (payload[0] == 'G') {
       char *ptr;
-      rgb.g = (uint8_t)strtol((char *)payload + 2, &ptr, 10);
+      rgba.g = (uint8_t)strtol((char *)payload + 2, &ptr, 10);
       return;
     }
 
     if (payload[0] == 'B') {
       char *ptr;
-      rgb.b = (uint8_t)strtol((char *)payload + 2, &ptr, 10);
+      rgba.b = (uint8_t)strtol((char *)payload + 2, &ptr, 10);
       return;
     }
 
     if (payload[0] == 'A') {
       char *ptr;
-      rgb.a = (uint8_t)strtol((char *)payload + 2, &ptr, 10);
+      rgba.a = (uint8_t)strtol((char *)payload + 2, &ptr, 10);
       return;
     }
   } break;
