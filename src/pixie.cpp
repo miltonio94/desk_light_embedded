@@ -14,9 +14,10 @@ struct colour {
   uint8_t r;
   uint8_t g;
   uint8_t b;
+  uint8_t a;
 };
 
-colour rgb = {0, 0, 0};
+colour rgb = {0, 0, 0, 255};
 
 void setupPixels(Adafruit_NeoPixel *pixels) {
   pixels->begin();
@@ -27,6 +28,7 @@ void setupPixels(Adafruit_NeoPixel *pixels) {
 void pixelUpdate(Adafruit_NeoPixel *pixels) {
   pixels->clear();
   for (uint8_t i = 0; i < NUMBER_OF_PIXELS; i++) {
+    pixels->setBrightness(rgb.a);
     pixels->setPixelColor(i, pixels->Color(rgb.g, rgb.r, rgb.b));
   }
   pixels->show();
@@ -36,7 +38,7 @@ void togglePixels(Adafruit_NeoPixel *pixels) {
   if (buttonState != buttonWebSocketState) {
     buttonState = buttonWebSocketState;
     if (buttonState) {
-      pixels->setBrightness(115);
+      pixels->setBrightness(rgb.a);
       for (uint8_t i = 0; i < NUMBER_OF_PIXELS; i++) {
         pixels->setPixelColor(i, pixels->Color(rgb.g, rgb.r, rgb.b));
       }
@@ -77,6 +79,8 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t *payload,
     webSocket.sendTXT(num, colourVal);
     sprintf((char *)colourVal, "B_%i", rgb.b);
     webSocket.sendTXT(num, colourVal);
+    sprintf((char *)colourVal, "A_%i", rgb.a);
+    webSocket.sendTXT(num, colourVal);
 
     if (buttonWebSocketState)
       webSocket.sendTXT(num, "STATE_ON");
@@ -87,14 +91,13 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t *payload,
   case WStype_TEXT: {
     lastUpdate = millis();
 
-    if (payload[0] == 'S' && payload[1] == 'T' && payload[6] == 'O' &&
-        payload[7] == 'N') {
+    if (length >= 7 && payload[6] == 'O' && payload[7] == 'N') {
       buttonWebSocketState = true;
       webSocket.sendTXT(num, "LAMP ON!");
       return;
     }
-    if (payload[0] == 'S' && payload[1] == 'T' && payload[6] == 'O' &&
-        payload[7] == 'F' && payload[8] == 'F') {
+    if (length >= 8 && payload[6] == 'O' && payload[7] == 'F' &&
+        payload[8] == 'F') {
       webSocket.sendTXT(num, "LAMP OFF!");
       buttonWebSocketState = false;
       return;
@@ -115,6 +118,12 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t *payload,
     if (payload[0] == 'B') {
       char *ptr;
       rgb.b = (uint8_t)strtol((char *)payload + 2, &ptr, 10);
+      return;
+    }
+
+    if (payload[0] == 'A') {
+      char *ptr;
+      rgb.a = (uint8_t)strtol((char *)payload + 2, &ptr, 10);
       return;
     }
   } break;
