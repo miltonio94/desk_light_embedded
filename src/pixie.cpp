@@ -87,12 +87,14 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t *payload,
   case WStype_TEXT: {
     lastUpdate = millis();
 
-    if (payload[0] == 'O' && payload[1] == 'N') {
+    if (payload[0] == 'S' && payload[1] == 'T' && payload[6] == 'O' &&
+        payload[7] == 'N') {
       buttonWebSocketState = true;
       webSocket.sendTXT(num, "LAMP ON!");
       return;
     }
-    if (payload[0] == 'O' && payload[1] == 'F' && payload[2] == 'F') {
+    if (payload[0] == 'S' && payload[1] == 'T' && payload[6] == 'O' &&
+        payload[7] == 'F' && payload[8] == 'F') {
       webSocket.sendTXT(num, "LAMP OFF!");
       buttonWebSocketState = false;
       return;
